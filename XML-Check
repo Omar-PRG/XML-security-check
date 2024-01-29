@@ -1,0 +1,36 @@
+from lxml import etree
+
+def validate_xml(xml_file: str, schema_file: str) -> bool:
+    """
+    Validate an XML file against a given schema.
+
+    Args:
+        xml_file (str): The path to the XML file.
+        schema_file (str): The path to the XML schema file.
+
+    Returns:
+        bool: True if the XML file is valid, False otherwise.
+    """
+    try:
+        with open(xml_file, "r") as f:
+            xml_tree = etree.parse(f)
+    except etree.XMLSyntaxError as e:
+        return False, f"Error parsing XML file: {e}"
+
+    try:
+        with open(schema_file, "r") as f:
+            schema = etree.XMLSchema(etree.parse(f))
+    except etree.XMLSyntaxError as e:
+        return False, f"Error parsing schema file: {e}"
+
+    if not schema.validate(xml_tree):
+        error_messages = [f"- {error}" for error in schema.error_log]
+        return False, "XML validation failed:\n" + "\n".join(error_messages)
+
+    return True, "XML file is valid."
+
+# Example usage
+xml_file = "example.xml"
+schema_file = "example_schema.xsd"
+valid, message = validate_xml(xml_file, schema_file)
+print(message)
